@@ -237,7 +237,7 @@ rmse_validation <- RMSE(predicted_ratings, validation$rating)
 # #####################################################
 # save objects file for upload in Rmd
 # #####################################################
-save(lambdas, lambda_m_optimal, lambda_u_optimal, lambda_g_optimal,
+save(edx, lambdas, lambda_m_optimal, lambda_u_optimal, lambda_g_optimal, rmse_test,
      rmse_validation, test_set, train_set, validation, file = "rmd_objects.RData")
 
 # #####################################################

@@ -1,7 +1,7 @@
 ---
 title: "Movie Recommendation System"
 author: "R Corrigan"
-date: "2021 June 13"
+date: "2021 July 5"
 output:
   pdf_document: default
   html_document: default
@@ -19,7 +19,6 @@ library(tidyr)
 library(knitr)
 library(kableExtra)
 
-load("edx")
 load("rmd_objects.RData")
 ```
 
