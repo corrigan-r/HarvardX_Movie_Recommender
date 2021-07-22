@@ -27,7 +27,7 @@ load("rmd_objects.RData")
 This report is a deliverable for the HavardX Capstone course, which is the ninth and final course of the HarvardX Data Science Professional Certificate Program. The challenge of the Capstone project is to create a movie selection system using the MovieLens dataset. The student is provided with a data set of movie ratings and is tasked with building an algorithm that predicts ratings that viewers give to movies. Once developed, the algorithm's utility is assessed by quantifying the closeness of predicted values to actual values on a separate validation set using the root mean squared error (RMSE) metric:
 
 $$RMSE = \sqrt{\frac{1}{N} \sum(\hat{y}_{u,i}-y_{u,i})^2} $$
-where $N$ is the number of predictions, $\hat{y}_{u,i}$ is the predicted rating by user $u$ of movie $i$ and $y_{u,i}$ is the actual rating found in the validation set. Based on the grading rubric provided for the Capstone project, the RMSE component of the final grade achieves full marks if it is less than 0.86490. Thus the main technical goal is to produce a model that predicts users' movie ratings with a RMSE of less than 0.86490.
+where $N$ is the number of predictions, $\hat{y}_{u,i}$ is the predicted rating by user $u$ of movie $i$ and $y_{u,i}$ is the actual rating found in the validation set. Based on the grading rubric provided for the Capstone project, the RMSE component of the final grade achieves full marks if it is less than 0.86490. Thus the main technical criterion is to produce a model that predicts users' movie ratings with a RMSE of less than 0.86490.
 
 The MovieLens 10M dataset, consisting of 10 million observations and available from <http://grouplens.org>, is used for the Capstone. HarvardX provided preliminary R code to refine the MovieLens dataset and partition it into two separate datasets: 1) an *edx* set, which is used to develop the prediction algorithm; 2) a *validation* set, which is used for the final test of the algorithm and calculation of the RMSE. The validation set is a partition of 10% percent of the MovieLens 10M dataset, and the remainder comprises the edx set. Thus, the edx set contains approximately 9 million observations (90% of the full dataset) for development of the algorithm. 
 The edx data set  is organized in a data frame. The first 10 rows are represented in the table below:
@@ -73,13 +73,13 @@ Most movies have multiple genre labels. For example, the movie *Outbreak* is lab
 edx %>% filter(genres %in% c("Action", "Adventure", "Animation", "Children", 
   "Comedy", "Drama", "Fantasy", "IMAX", "Musical", "Sci-Fi", "Thriller", "War")) %>%  
   group_by(genres) %>% summarize(avg_rating = mean(rating)) %>% mutate(genres = reorder(genres, avg_rating)) %>% 
-  ggplot(aes(genres, avg_rating)) + geom_col()+ theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+  ggplot(aes(genres, avg_rating)) + geom_col()+ theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
   labs(x = "Genre", y = "Average rating")
  genre_count <- edx %>% group_by(genres) %>% summarize(count = n()) %>% slice_min(count, n = 15)
 ```
 
 
-There is clear movie effect on ratings. Drama and war movies, for example, are rated an average of about `r round(mean(edx$rating[which(edx$genres == "War")]) - mean(edx$rating[which(edx$genres == "Children")]), digits = 1)` greater than IMAX and Children movies. Thus, genre effects are a useful component of the model. 
+Drama and war movies, for example, are rated an average of about `r round(mean(edx$rating[which(edx$genres == "War")]) - mean(edx$rating[which(edx$genres == "Children")]), digits = 1)` greater than IMAX and children movies. Thus, genre effects are a useful component of the model. 
 
 ### Time
 
@@ -91,7 +91,7 @@ A scatter plot of ratings against time reveals a subtle time dependence of ratin
    summarize(rating = mean(rating)) %>%
    ggplot(aes(week, rating)) +
    geom_point() +
-   geom_smooth() + labs(x = "Time", y = "Average rating (by week)")
+   geom_smooth() + labs(x = "Year", y = "Average rating (by week)")
  ```
 
 ```{r rating count by quarter, echo = FALSE}
@@ -105,7 +105,7 @@ We can see that movie ratings decline steadily until about 2005, after which the
 
 ## Regularization
 
-Regularization was employed to reduce the potential of large effects from small sample sizes. Some movies received few ratings and Movie effects calculated for these movies are therefore prone to greater variance. It is desirable to assign less weight to these effects compared to effects derived from larger sample sizes. The plot below shows there are thousands of movies with 15 or less ratings.
+Regularization was employed to reduce the potential of large effects from small sample sizes. Some movies received few ratings and movie effects calculated for these movies are therefore prone to greater variance. It is desirable to assign less weight to these effects compared to effects derived from larger sample sizes. The plot below shows there are thousands of movies with 15 or less ratings.
 
 ```{r plot number of ratings by movie}
 edx %>% group_by(movieId) %>% mutate(count = n()) %>% ungroup() %>% filter(count < 25) %>% 
