@@ -58,9 +58,11 @@ Users were found to have different biases, some having propensities to rate high
 ```{r avg user ratings}
 train_set %>% group_by(userId) %>% filter(n()>500) %>% 
   summarize(user = "Users with more than 500 ratings", avg_rating = mean(rating)) %>% 
-  ggplot(aes(user, avg_rating)) + geom_boxplot() + geom_jitter(width = 0.03, alpha = .1) +
-  xlab("") + ylab("Average rating (by user)")
-mean_avg <- train_set %>% group_by(userId) %>% filter(n()>500) %>% summarize(average = mean(rating))
+  ggplot(aes(user, avg_rating)) + geom_boxplot() + 
+  geom_jitter(width = 0.03, alpha = .1) + xlab("") + ylab("Average rating (by user)")
+
+mean_avg <- train_set %>% group_by(userId) %>% 
+  filter(n()>500) %>% summarize(average = mean(rating))
 ```
 
 The plot reveals a clear user effect. While it can be seen that the average of the users' average ratings is close to `r round(mean(mean_avg$average), 1)`, some users are giving ratings of mostly 1 or 1.5 while others are giving ratings of mostly 4 or 4.5. 
@@ -72,10 +74,13 @@ Most movies have multiple genre labels. For example, the movie *Outbreak* is lab
 ```{r plot_genre_average_ratings, echo=FALSE}
 edx %>% filter(genres %in% c("Action", "Adventure", "Animation", "Children", 
   "Comedy", "Drama", "Fantasy", "IMAX", "Musical", "Sci-Fi", "Thriller", "War")) %>%  
-  group_by(genres) %>% summarize(avg_rating = mean(rating)) %>% mutate(genres = reorder(genres, avg_rating)) %>% 
-  ggplot(aes(genres, avg_rating)) + geom_col()+ theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+  group_by(genres) %>% summarize(avg_rating = mean(rating)) %>% 
+  mutate(genres = reorder(genres, avg_rating)) %>% ggplot(aes(genres, avg_rating)) + 
+  geom_col()+ theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
   labs(x = "Genre", y = "Average rating")
- genre_count <- edx %>% group_by(genres) %>% summarize(count = n()) %>% slice_min(count, n = 15)
+
+ genre_count <- edx %>% group_by(genres) %>% 
+   summarize(count = n()) %>% slice_min(count, n = 15)
 ```
 
 
@@ -108,16 +113,22 @@ We can see that movie ratings decline steadily until about 2005, after which the
 Regularization was employed to reduce the potential of large effects from small sample sizes. Some movies received few ratings and movie effects calculated for these movies are therefore prone to greater variance. It is desirable to assign less weight to these effects compared to effects derived from larger sample sizes. The plot below shows there are thousands of movies with 15 or less ratings.
 
 ```{r plot number of ratings by movie}
-edx %>% group_by(movieId) %>% mutate(count = n()) %>% ungroup() %>% filter(count < 25) %>% 
-  group_by(count) %>% summarize(nratings = n()) %>% ggplot(aes(count, nratings, fill = count)) + 
-  geom_bar(stat = "identity") + labs(x = "Number of ratings", y = "Number of movies") + 
-  scale_fill_gradient2(low = "red3", high = "forestgreen", mid = "grey79", midpoint = 16,
- breaks=c(2,23),labels=c("More need for regularization","Less need for regularization"))+ theme(legend.title = element_blank()) 
+edx %>% group_by(movieId) %>% mutate(count = n()) %>% ungroup() %>% 
+  filter(count < 25) %>% group_by(count) %>% summarize(nratings = n()) %>% 
+  ggplot(aes(count, nratings, fill = count)) + 
+  geom_bar(stat = "identity") + 
+  labs(x = "Number of ratings", y = "Number of movies") + 
+  scale_fill_gradient2(low = "red3", high = "forestgreen", mid = "grey79", 
+                       midpoint = 16, breaks=c(2,23), 
+                       labels=c("More need for regularization", 
+                                "Less need for regularization")) + 
+  theme(legend.title = element_blank()) 
 
-low_genre_ratings <- edx %>% group_by(genres) %>% summarize(count = n()) %>% filter(count <= 15) %>%
-  nrow()
-low_user_ratings <- edx %>% group_by(userId) %>% summarize(count = n()) %>% filter(count <= 15) %>%
-  nrow()
+low_genre_ratings <- edx %>% group_by(genres) %>% 
+  summarize(count = n()) %>% filter(count <= 15) %>% nrow()
+
+low_user_ratings <- edx %>% group_by(userId) %>% 
+  summarize(count = n()) %>% filter(count <= 15) %>%  nrow()
 ```
 
 There are also `r low_genre_ratings` genre combinations and `r low_user_ratings` users associated with 15 or fewer ratings. With respect to time effects, stratifying the movie data by quarter-years results in no quarter with less than `r min(rating_count_quarter[-1,]$n)` ratings, except for 1995 for which there are only two ratings. Therefore, the two ratings from 1995 are excluded from analysis, and regularization is not necessary for the time effect term of the model.
